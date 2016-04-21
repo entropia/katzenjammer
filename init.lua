@@ -3,18 +3,14 @@ PIN1 = 5
 PIN2 = 6
 PIN3 = 7
 
+gpio.mode(PIN1, gpio.INPUT, gpio.PULLUP)
+gpio.mode(PIN2, gpio.INPUT, gpio.PULLUP)
+gpio.mode(PIN3, gpio.INPUT, gpio.PULLUP)
+
 function button_init ()
   gpio.trig(BUTTON, "down", button_callback)
   gpio.mode(BUTTON, gpio.INT)
-
-  gpio.mode(PIN1, gpio.INPUT, gpio.PULLUP)
-
-  gpio.mode(PIN2, gpio.INPUT, gpio.PULLUP)
-
-  gpio.mode(PIN3, gpio.INPUT, gpio.PULLUP)
 end
-
-
 
 function trigger_effect ()
   g = gpio.read(PIN1) * 255
