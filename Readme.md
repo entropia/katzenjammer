@@ -1,7 +1,7 @@
 Katzenjammer
 ============
 
-Trigger sound effects at Entropia.
+Trigger sound effects at [`Entropia`](https://entropia.de).
 
 Preparation of the ESP8266
 --------------------------
