@@ -12,16 +12,7 @@ rainbow = 0
 sound = 0
 soundname = nil
 
-
-uart.setup(0,115200,8,0,1)
-print ("started....")
-
-wifi.setmode(wifi.STATION)
-
-function button_init ()
-  gpio.trig(BUTTON, "down", button_callback)
-  gpio.mode(BUTTON, gpio.INT)
-  
+function gpio_init()
   gpio.trig(PIN1, "both", card_callback)
   gpio.mode(PIN1, gpio.INT, gpio.PULLUP)
 
@@ -30,6 +21,11 @@ function button_init ()
 
   gpio.trig(PIN3, "both", card_callback)
   gpio.mode(PIN3, gpio.INT, gpio.PULLUP)
+end
+
+function button_init ()
+  gpio.trig(BUTTON, "down", button_callback)
+  gpio.mode(BUTTON, gpio.INT)
 end
 
 function rimshot (command)
@@ -69,10 +65,10 @@ function card_callback (level)
   g = gpio.read(PIN1)
   r = gpio.read(PIN2)
   b = gpio.read(PIN3)
-  
+
   sound = r*4 + g*2 + b 
   sound = sound - 1
-  
+
   if sound == 6 then sound = nil end  
   print (sound)  
 
@@ -120,5 +116,6 @@ function update_config ()
 
 end
 
+gpio_init()
 button_init()
 tmr.alarm(5, 10000, 1, update_config)
