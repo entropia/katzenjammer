@@ -30,7 +30,7 @@ end
 
 function rimshot (command)
   socket = net.createConnection(net.UDP, 0)
-  socket:connect(23421, "192.168.24.164") 
+  socket:connect(23421, "192.168.23.42")
   socket:send((command and command or "rimshot") .. "\n")
   socket:close()
 end
@@ -66,13 +66,13 @@ function card_callback (level)
   r = gpio.read(PIN2)
   b = gpio.read(PIN3)
 
-  sound = r*4 + g*2 + b 
+  sound = r*4 + g*2 + b
   sound = sound - 1
 
-  if sound == 6 then sound = nil end  
-  print (sound)  
+  if sound == 6 then sound = nil end
+  print (sound)
 
-  soundname = json[tostring(sound)]
+  soundname = json[tostring(sound)] or nil
   print (soundname)
 
   if (soundname == '$random') then
@@ -91,7 +91,7 @@ end
 function string:split(sep)
   local sep, fields = sep or ":", {}
   local pattern = string.format("([^%s]+)", sep)
-  self:gsub(pattern, function(c) fields[#fields+1] = c end) 
+  self:gsub(pattern, function(c) fields[#fields+1] = c end)
   return fields
 end
 
