@@ -3,14 +3,17 @@ PIN1 = 5
 PIN2 = 6
 PIN3 = 7
 
-r = 0
-g = 0
-b = 0
-
-rainbow = 0
-
 sound = 0
 soundname = nil
+host = {
+  address = "192.168.23.42";
+  port = 23421
+}
+timers = {
+  debounce = 0;
+  rainbow = 1;
+  config_update = 2;
+}
 
 function gpio_init()
   gpio.trig(PIN1, "both", card_callback)
@@ -30,16 +33,18 @@ end
 
 function rimshot (command)
   socket = net.createConnection(net.UDP, 0)
-  socket:connect(23421, "192.168.23.42")
-  socket:send((command and command or "rimshot") .. "\n")
+  socket:connect(host.port, host.address)
+  command = (command and command or "rimshot")
+  print("will send command: " .. command)
+  socket:send(command .. "\n")
   socket:close()
 end
 
 function button_callback (level)
+  print("button pressed")
   gpio.mode(BUTTON, gpio.INPUT) -- disable interrupt
-  tmr.alarm(0, 300, tmr.ALARM_SINGLE, button_init)
+  tmr.alarm(timers.debounce, 300, tmr.ALARM_SINGLE, button_init)
   if level == 0 then
-
     rimshot(soundname)
   end
 end
@@ -50,7 +55,7 @@ function rainbow ()
   b = math.random(0,1)*255
 
   leds_grb = string.char(g,r,b, g,r,b)
-  ws2812.write(4, leds_grb)
+  ws2812.write(leds_grb)
 end
 
 
@@ -60,7 +65,6 @@ function card_callback (level)
   gpio.mode(PIN3, gpio.INPUT) -- disable interrupt
 
   print ("interrupt!")
-  tmr.alarm(0, 500, 0, button_init)
 
   g = gpio.read(PIN1)
   r = gpio.read(PIN2)
@@ -72,21 +76,21 @@ function card_callback (level)
   if sound == 6 then sound = nil end
   print (sound)
 
-  soundname = json[tostring(sound)] or nil
+  soundname = nil
+  if json then
+    soundname = json[tostring(sound)]
+  end
   print (soundname)
 
   if (soundname == '$random') then
-    print ("random11!!!")
-    tmr.alarm(1, 500, 1, rainbow)
+    tmr.alarm(timers.rainbow, 500, tmr.ALARM_AUTO, rainbow)
   else
-    tmr.stop(1)
+    tmr.stop(timers.rainbow)
     leds_grb = string.char(g*255,r*255,b*255, g*255,r*255,b*255)
-    ws2812.write(4, leds_grb)
+    ws2812.write(leds_grb)
   end
-  button_init()
+  gpio_init()
 end
-
-
 
 function string:split(sep)
   local sep, fields = sep or ":", {}
@@ -95,27 +99,17 @@ function string:split(sep)
   return fields
 end
 
-
-
 json = nil
-available = {}
 function update_config ()
   print ("start request")
-  http.get('http://192.168.23.42/storage/ENTROPIA/configkadse.txt', nil, function(code, _data)
+  http.get('http://' .. host.address .. '/storage/ENTROPIA/configkadse.txt', nil, function(code, _data)
     if (code >= 0) then
       json = cjson.decode(_data)
     end
   end)
-
-  -- http.get('http://192.168.23.42/storage/ENTROPIA/sounds.txt', nil, function(code, _data)
-    -- if (code >= 0) then
-      -- available = _data:split('\n')
-    -- end
-  -- end)
-  -- print (available[math.random(0,#available)])
-
 end
 
 gpio_init()
 button_init()
-tmr.alarm(5, 10000, 1, update_config)
+ws2812.init()
+tmr.alarm(timers.config_update, 120000, 1, update_config)
